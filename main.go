@@ -1,30 +1,66 @@
 package main
 
 import (
-    "html/template"
-    "net/http"
+	"database/sql"
+	"html/template"
+	"net/http"
+
+	_ "github.com/lib/pq"
 )
 
+func conectaComBancoDeDados() *sql.DB {
+	conexao := "user=postgres dbname=go_store password=230206 host=localhost sslmode=disable"
+	db, err := sql.Open("postgres", conexao)
+	if err != nil {
+		panic(err.Error())
+	}
+	return db
+}
+
 type Produto struct {
-	Nome      string
-	Descricao string
-	Preco     float64
+	Id         int
+	Nome       string
+	Descricao  string
+	Preco      float64
 	Quantidade int
 }
 
-var tmpl = template.Must(template.ParseGlob("templates/*.html"))
+var temp = template.Must(template.ParseGlob("templates/*.html"))
 
 func main() {
-    http.HandleFunc("/", Index)
-    http.ListenAndServe(":8000", nil)
+	http.HandleFunc("/", index)
+	http.ListenAndServe(":8000", nil)
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	produtos := []Produto{
-		{Nome: "Camiseta", Descricao: "Azul Bem bonita", Preco: 39.99, Quantidade: 10},
-		{"Tenis", "Confortável", 299.99, 3},
-		{"Fone", "Muito Bom", 59.99, 20},
+func index(w http.ResponseWriter, r *http.Request) {
+	db := conectaComBancoDeDados()
+
+	selectDeTodosOsProdutos, err := db.Query("select * from produtos")
+	if err != nil {
+		panic(err.Error())
 	}
 
-    tmpl.ExecuteTemplate(w, "Index", produtos)
-}	
+	p := Produto{}
+	produtos := []Produto{}
+
+	for selectDeTodosOsProdutos.Next() {
+		var id, quantidade int
+		var nome, descricao string
+		var preco float64
+
+		err = selectDeTodosOsProdutos.Scan(&id, &nome, &descricao, &preco, &quantidade)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		p.Nome = nome
+		p.Descricao = descricao
+		p.Preco = preco
+		p.Quantidade = quantidade
+
+		produtos = append(produtos, p)
+	}
+
+	temp.ExecuteTemplate(w, "Index", produtos)
+	defer db.Close()
+}

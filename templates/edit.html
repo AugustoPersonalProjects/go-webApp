@@ -1,61 +1,108 @@
 {{define "Edit"}}
-
 {{template "_head"}}
-
 {{template "_menu"}}
 
-<div class="container">
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <h1 class="display-5 font-weight-bold text-dark mb-3">Editar Produto</h1>
+                    <p class="lead text-muted">Atualize as informações do produto</p>
+                </div>
 
-    <body>
-        <div class="jumbotron jumbotron-fluid">
-            <div class="container">
-                <h1 class="display-5">Editando produto</h1>
-                <p class="lead">Insira os dados para atualizar ou editar</p>
+                <!-- Form Card -->
+                <div class="card">
+                    <div class="card-body p-4">
+                        <form method="POST" action="update" id="editForm">
+                            <input type="hidden" name="id" value="{{.Id}}">
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="nome" class="font-weight-semibold">
+                                            <i class="fas fa-tag me-2 text-primary"></i>
+                                            Nome do Produto
+                                        </label>
+                                        <input type="text" name="nome" class="form-control" value="{{.Nome}}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="preco" class="font-weight-semibold">
+                                            <i class="fas fa-dollar-sign me-2 text-success"></i>
+                                            Preço
+                                        </label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">R$</span>
+                                            </div>
+                                            <input type="number" name="preco" class="form-control" step="0.01" value="{{.Preco}}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="descricao" class="font-weight-semibold">
+                                    <i class="fas fa-align-left me-2 text-info"></i>
+                                    Descrição
+                                </label>
+                                <textarea name="descricao" class="form-control" rows="3" required>{{.Descricao}}</textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="quantidade" class="font-weight-semibold">
+                                            <i class="fas fa-boxes me-2 text-warning"></i>
+                                            Quantidade em Estoque
+                                        </label>
+                                        <input type="number" name="quantidade" class="form-control" value="{{.Quantidade}}" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between">
+                                    <a class="btn btn-outline-secondary" href="/">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-success px-4">
+                                        <i class="fas fa-check me-2"></i>
+                                        Atualizar Produto
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-        <form method="POST" action="update">
-            <input type="hidden" name="id" value="{{.Id}}" >
-            <div class="row">
-                <div class="col-sm-8">
-                    <div class="form-group">
-                        <label for="nome">Nome:</label>
-                        <input type="text" name="nome" class="form-control" value="{{.Nome}}">
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-8">
-                    <div class="form-group">
-                        <label for="descricao">Descrição:</label>
-                        <input type="text" name="descricao" class="form-control" value="{{.Descricao}}">
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-2">
-                    <div class="form-group">
-                        <label for="preco">Preço:</label>
-                        <input type="number" name="preco" class="form-control" step="0.01" value="{{.Preco}}">
-                    </div>
-                </div>
-            </div>
+    </div>
 
-            <div class="row">
-                <div class="col-sm-2">
-                    <div class="form-group">
-                        <label for="quantidade">Quantidade:</label>
-                        <input type="number" name="quantidade" class="form-control" value="{{.Quantidade}}">
-                    </div>
-                </div>
-            </div>
-            <button type="submit" value="salvar" class="btn btn-success">Atualizar</button>
-            <a class="btn btn-info" href="/">Voltar</a>
-        </form>
-    </body>
-
-</html>
-</div>
+    <script>
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            const preco = parseFloat(this.preco.value);
+            const quantidade = parseInt(this.quantidade.value);
+            
+            if (preco < 0) {
+                e.preventDefault();
+                alert('O preço não pode ser negativo');
+                this.preco.focus();
+                return false;
+            }
+            
+            if (quantidade < 0) {
+                e.preventDefault();
+                alert('A quantidade não pode ser negativa');
+                this.quantidade.focus();
+                return false;
+            }
+        });
+    </script>
 </body>
-
 </html>
 {{end}}

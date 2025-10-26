@@ -1,67 +1,130 @@
 {{define "Index"}}
-
 {{template "_head"}}
 {{template "_menu"}}
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-        crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-        crossorigin="anonymous"></script>
-    <title>GO Store</title>
-</head>
-<nav class="navbar navbar-light bg-light mb-4">
-    <a class="navbar-brand" href="/">Bem-vindo à GO Store</a>
-</nav>
-
 <body>
     <div class="container">
-        <section class="card">
-            <div>
-                <table class="table table-striped table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Descrição</th>
-                            <th>Preço</th>
-                            <th>Quantidade</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range .}}
-                        <tr>
-                            <td>{{.Nome}}</td>
-                            <td>{{.Descricao}}</td>
-                            <td>{{.Preco}}</td>
-                            <td>{{.Quantidade}}</td>
-                            <td><a href="edit?id={{.Id}}" class="btn btn-info">Editar</a></td>
-                            <td><button onclick="onDelete('{{.Id}}' )" class="btn btn-danger">Deletar</button></td>
-                        </tr>
-                        {{end}}
-                    </tbody>
-                </table>
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="font-weight-bold text-dark mb-1">Produtos</h2>
+                        <p class="text-muted">Gerencie seu inventário de produtos</p>
+                    </div>
+                    <a href="/new" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Novo Produto
+                    </a>
+                </div>
             </div>
-        </section>
-        <div class="card-footer">
-            <a href="/new" class="btn btn-primary mb-2">Criar novo produto</a>
+        </div>
+
+        <!-- Products Table -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="border-0">Produto</th>
+                                <th class="border-0">Descrição</th>
+                                <th class="border-0 text-right">Preço</th>
+                                <th class="border-0 text-center">Estoque</th>
+                                <th class="border-0 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range .}}
+                            <tr class="align-middle">
+                                <td class="font-weight-semibold">{{.Nome}}</td>
+                                <td class="text-muted">{{.Descricao}}</td>
+                                <td class="text-right font-weight-bold text-primary">
+                                    R$ {{printf "%.2f" .Preco}}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {{if gt .Quantidade 0}}badge-success{{else}}badge-danger{{end}}">
+                                        {{.Quantidade}} un
+                                    </span>
+                                </td>
+                                <td class="text-center action-buttons">
+                                    <a href="edit?id={{.Id}}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit me-1"></i>
+                                        Editar
+                                    </a>
+                                    <button onclick="onDelete('{{.Id}}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash me-1"></i>
+                                        Excluir
+                                    </button>
+                                </td>
+                            </tr>
+                            {{else}}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="fas fa-box-open fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted">Nenhum produto cadastrado</p>
+                                    <a href="/new" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Adicionar Primeiro Produto
+                                    </a>
+                                </td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Footer -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body py-3">
+                        <div class="row text-center">
+                            <div class="col">
+                                <h5 class="font-weight-bold text-primary mb-1">{{len .}}</h5>
+                                <small class="text-muted">Total de Produtos</small>
+                            </div>
+                            <div class="col">
+                                <h5 class="font-weight-bold text-success mb-1" id="totalEstoque">
+                                    <!-- Total será calculado via JavaScript -->
+                                </h5>
+                                <small class="text-muted">Itens em Estoque</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</body>
 
-<script>
-    function onDelete(id) {
-        let resposta = confirm("Tem certeza que deseja deletar este produto?");
-        if (resposta) {
-            window.location = "/delete?id=" + id;
+    <script>
+        // Calcular total em estoque
+        function calcularTotalEstoque() {
+            const quantidades = document.querySelectorAll('td:nth-child(4) .badge');
+            let total = 0;
+            quantidades.forEach(badge => {
+                const texto = badge.textContent.trim();
+                const quantidade = parseInt(texto.split(' ')[0]);
+                if (!isNaN(quantidade)) {
+                    total += quantidade;
+                }
+            });
+            document.getElementById('totalEstoque').textContent = total;
         }
-    }
-</script>
 
+        // Calcular quando a página carregar
+        document.addEventListener('DOMContentLoaded', calcularTotalEstoque);
+
+        function onDelete(id) {
+            // Usar confirm simples por enquanto
+            let resposta = confirm("Tem certeza que deseja excluir este produto?");
+            if (resposta) {
+                window.location = "/delete?id=" + id;
+            }
+        }
+    </script>
+</body>
 </html>
 {{end}}
